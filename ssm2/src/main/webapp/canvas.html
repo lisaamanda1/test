@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<style>  
+        #show{   
+            font-size: 1px;
+        }  
+    </style>
+</head>
+<body>
+	<input type="button" value="test" onclick="test();">
+	<input type="button" value="stop" onclick="stop();">
+	<canvas id="myCanvas"></canvas>
+	<canvas id="myCanvas2"></canvas>
+	<pre id="show"></pre>
+	
+	<script type="text/javascript">
+	window.onload = function() {
+		var c = document.getElementById("myCanvas");
+		var c2 = document.getElementById("myCanvas2");
+		var cxt = c.getContext("2d");
+		var cxt2 = c2.getContext("2d");
+		var show = document.getElementById("show");
+		var img = new Image();
+		var imageData;
+		img.src = "img/555.jpg";
+		img.onload = function() {
+			
+			c.width = img.width;
+			c.height = img.height;
+			c2.width = img.width;
+			c2.height = img.height;
+			cxt.drawImage(img, 0, 0);
+			//cxt2.drawImage(img, 0, 0);
+			imageData = cxt.getImageData(0, 0, c.width, c.height);
+			//var imageData2 = cxt2.getImageData(0, 0, c.width, c.height);
+			var dataLength = imageData.data.length / 4;
+			
+			var blockWidth = 3;
+			var blockHeight = 6;
+			var rectWidth = Math.floor(img.width / blockWidth);
+			var rectHeigth = Math.floor(img.height / blockHeight);
+			
+			
+			/*for(var j=0; j<c2.height; j++) {
+				for(var i=0; i<c2.width; i++) {
+					//var g = getBlockGray(i * blockWidth, j * blockHeight, blockWidth, blockHeight).toString(16);
+					//var fill = "#".concat(g, g, g);
+					//var fill = g;
+					//cxt2.fillStyle = fill;
+					//cxt2.fillRect(i*1, j*1, 1, 1);
+					var index = j * c2.width + i;
+					var R = imageData.data[index * 4];
+					var G = imageData.data[index * 4 + 1];
+					var B = imageData.data[index * 4 + 2];
+					var fill = "#".concat(("0" + R.toString(16)).slice(-2),("0" + G.toString(16)).slice(-2),("0" + B.toString(16)).slice(-2));
+					cxt2.fillStyle = fill;
+					cxt2.fillRect(i, j, 1, 1);
+				}
+			}*/
+			
+			var charMap = "";
+			for(var j=0; j<rectHeigth; j++) {
+				for(var i=0; i<rectWidth; i++) {
+					var g = getBlockGray(i * blockWidth, j * blockHeight, blockWidth, blockHeight);
+					var hexg = ("0" + g.toString(16)).slice(-2);
+					var fill = "#".concat(hexg, hexg, hexg);
+					//cxt2.fillStyle = fill;
+					//cxt2.fillRect(i * blockWidth, j * blockHeight, blockWidth, blockHeight);
+					charMap = charMap + getCharsMap(g);
+				}
+				charMap = charMap + "\n";
+			}
+			show.innerHTML = charMap;
+			
+			/*for(var i=0; i<dataLength; i++) {
+				var R = imageData.data[i * 4];
+				var G = imageData.data[i * 4 + 1];
+				var B = imageData.data[i * 4 + 2];
+				var gray = R * 0.3 + G * 0.59 + B * 0.11;
+				
+				imageData.data[i * 4] = gray;
+				imageData.data[i * 4 + 1] = gray;
+				imageData.data[i * 4 + 2] = gray;
+			}
+			cxt.putImageData(imageData, 0, 0);*/
+			
+			/*var g = getBlockGray(0,0,blockWidth,blockHeight);
+			var fillStyle = "#".concat(g.toString(16),g.toString(16),g.toString(16));
+			cxt2.fillStyle = fillStyle;
+			cxt2.fillRect(0,0,10,10);*/
+		}
+		
+		//获取区域平均灰度
+		function getBlockGray(x, y, w, h) {
+			var sumGray = 0;
+			var index = 0;
+			for(var i=0; i<h; i++) {
+				for(var j=0; j<w; j++) {
+					var cx = x + j;
+                    var cy = y + i;
+                    var index = cy * c.width + cx;
+					var R = imageData.data[index * 4];
+					var G = imageData.data[index * 4 + 1];
+					var B = imageData.data[index * 4 + 2];
+					var gray = R * 0.3 + G * 0.59 + B * 0.11;
+					sumGray = sumGray + gray;
+				}
+			}
+			var avgGray = Math.round(sumGray / (w * h));
+			return avgGray;
+		}
+		
+		//获取灰度字母
+		function getCharsMap(gray) {
+		    var strArr = ['@', 'W', '#', '$', 'k', 'd', 't', 'j', 'i', '.', ' '];
+			//strArr = getStrArr();
+		    var step = 255 / (strArr.length - 1);
+		    var index = Math.round(gray / step);
+		    return strArr[index];  
+		}
+		
+		function getStrArr() {
+			var str = "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft1-_+~i!lI;:,^`'. ";
+			var charArr = [];
+			for(var i=0; i<str.length; i++) {
+				charArr.push(str.substring(i, i+1));
+			}
+			return charArr;
+			/*
+			var codes = "46,96,39,58,45,44,59,34,95,126,33,94,105,114,124,47,73,61,60,62,42,108,92,49,116,43,106,63,118,41,40,76,102,123,55,125,74,84,99,120,122,93,91,117,110,115,89,111,70,121,101,50,97,86,107,51,104,90,67,52,80,53,65,113,88,112,69,37,48,85,100,98,54,75,83,57,35,72,119,71,36,79,103,68,56,82,81,109,66,38,78,87,77,64";
+			var codeArr = codes.split(",");
+			var charArr = [];
+			for(var i=0; i<codeArr.length; i++) {
+				charArr.unshift(String.fromCharCode(codeArr[i]));
+			}*/
+		}
+	}
+	var interval;
+	function test() {
+		/*var codes = "46,96,39,58,45,44,59,34,95,126,33,94,105,114,124,47,73,61,60,62,42,108,92,49,116,43,106,63,118,41,40,76,102,123,55,125,74,84,99,120,122,93,91,117,110,115,89,111,70,121,101,50,97,86,107,51,104,90,67,52,80,53,65,113,88,112,69,37,48,85,100,98,54,75,83,57,35,72,119,71,36,79,103,68,56,82,81,109,66,38,78,87,77,64";
+		var codeArr = codes.split(",");
+		var charArr = [];
+		for(var i=0; i<codeArr.length; i++) {
+			charArr.unshift(String.fromCharCode(codeArr[i]));
+		}*/
+		/*var str = "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft1-_+~i!lI;:,^`'. ";
+		var charArr = [];
+		for(var i=0; i<str.length; i++) {
+			charArr.push(str.substring(i, i+1));
+		}*/
+		var str = 0;
+		var show = document.getElementById("show");
+		interval = setInterval(function() {
+			show.innerHTML = str++;
+		}, 1000);
+		//show.innerHTML = str;
+	}
+	
+	function stop() {
+		clearInterval(interval);
+	}
+	</script>
+</body>
+</html>
